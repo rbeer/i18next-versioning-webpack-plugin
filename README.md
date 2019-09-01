@@ -5,6 +5,8 @@ This [webpack](https://https://webpack.js.org) plugin detects changes in your i1
 
 The localstorage backend of [i18next](https://www.i18next.com/) takes an option `versions` to determine whether the language definitions have been updated and should be pulled from the backend.  
 
+NOTE: i18next-versioning does not care whether you've undone changes. It will always increment the version number of changed languages.
+
 ## Install
 `npm i git+https://github.com/shadowban-eu/i18next-versioning-webpack-plugin.git`
 
@@ -87,10 +89,15 @@ i18next-versioning taps into webpack's `beforeRun` hook, does its thing and
 adds the versions object with the name `i18nVersions` to the DefinePlugin definitions,
 to make it available to whereever your init({...}) i18next.
 
+## Production vs. Development
+
+i18next-versioning uses `Date.now()` as version string for *all* languages, when `mode !== 'production'` to reflect all changes without actually incrementing your versions (also stored in and read from `hashFileName`). In fact, it does not write to the hash file at all.
+
+Creating a production build with a presumably "smaller" version (timestamps are 13 digits) works, since i18next-localstorage-backend also does not care about the direction your version strings change. It just pulls an update of the definitions whenever their version string has changed. You could even call your versions 'Mike', 'Joe', and 'Diane' and it still worked. ;D
+
 ## Options
 |     Name     |         Default        |                                                                                                                    |
 |:------------:|:----------------------:|--------------------------------------------------------------------------------------------------------------------|
 |   langsRoot  |            -           | Root folder of translations. Expects one folder per language as children.                                          |
 | hashFileName | i18nVersionHashes.json | Filename where hashes should be stored. Commit this file! |
 
-NOTE: i18next-versioning does not care whether you've undone changes. It will always increment the version number of changed languages.
