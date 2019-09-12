@@ -27,5 +27,6 @@
   },
   "dependencies": {
     "folder-hash": "^3.2.0"
-  }
+  },
+  "devDependencies": {}
 }
