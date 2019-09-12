@@ -24,7 +24,7 @@ class I18nextVersioningPlugin {
   }
 
   static compareAndUpdate(loaded, generated) {
-    const log = I18nextVersioningPlugin.logger.info;
+    const log = I18nextVersioningPlugin.logger.info.bind(I18nextVersioningPlugin.logger);
 
     Object.keys(generated).forEach((langKey) => {
       // ignore, if language didn't exist, yet
@@ -38,14 +38,13 @@ class I18nextVersioningPlugin {
         generated[langKey].version += 1;
         log(`Incremented '${langKey}' to ${generated[langKey].version}`);
       } else {
-        log(`Leaving '${langKey}'   at ${generated[langKey].version}`);
+        log(`Leaving '${langKey}' at ${generated[langKey].version}`);
       }
     });
   }
 
   static getDefinePluginOptions(compiler) {
     const defineOptions = compiler.options.plugins.filter(plugin => plugin instanceof DefinePlugin);
-    console.log(defineOptions)
     if (defineOptions.length === 0) {
       throw new ReferenceError(`${pluginName} needs DefinePlugin to work!`);
     }
@@ -86,21 +85,18 @@ class I18nextVersioningPlugin {
 
   apply(compiler) {
     I18nextVersioningPlugin.logger = compiler.getInfrastructureLogger(pluginName);
+
     const production = compiler.options.mode === 'production';
     const watching = !!compiler.options.watch;
     const devServer = !!process.env.WEBPACK_DEV_SERVER;
 
+    const boundRun = this.run.bind(this, compiler, production);
+
     // `beforeRun` event doesn't fire in watch mode
     if (watching || devServer) {
-      compiler.hooks.watchRun.tapPromise(
-        pluginName,
-        this.run.bind(this, compiler, production)
-      );
+      compiler.hooks.watchRun.tapPromise(pluginName, boundRun);
     } else {
-      compiler.hooks.beforeRun.tapPromise(
-        pluginName,
-        this.run.bind(this, compiler, production)
-      );
+      compiler.hooks.beforeRun.tapPromise(pluginName, boundRun);
     }
   }
 }
